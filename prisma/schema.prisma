@@ -1,0 +1,204 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Customer model
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  name           String
+  password       String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  addresses      Address[]
+  orders         Order[]
+  paymentMethods PaymentMethod[]
+
+  @@index([email])
+}
+
+model Address {
+  id         String  @id @default(uuid())
+  userId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  street     String
+  city       String
+  state      String
+  postalCode String
+  country    String
+  isDefault  Boolean @default(false)
+  phone      String?
+
+  orders Order[]
+
+  @@index([userId])
+}
+
+model PaymentMethod {
+  id                 String   @id @default(uuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type               String   // "credit_card", "paypal", etc.
+  lastFourDigits     String?  // For credit cards
+  expiryDate         String?  // For credit cards
+  isDefault          Boolean  @default(false)
+  // We should not store actual payment details
+  // These are tokenized references to payment provider data
+  paymentProviderRef String?
+
+  @@index([userId])
+}
+
+// Product models
+model Product {
+  id          String       @id @default(uuid())
+  name        String
+  description String
+  basePrice   Decimal      @db.Decimal(10, 2)
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  sizes       Size[]
+  colors      Color[]
+  images      Image[]
+  inventory   Inventory[]
+  orderItems  OrderItem[]
+  designType  DesignType?  @relation(fields: [designTypeId], references: [id])
+  designTypeId String?
+
+  @@index([name])
+}
+
+model DesignType {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  products    Product[]
+}
+
+model Size {
+  id          String      @id @default(uuid())
+  name        String      // S, M, L, XL, etc.
+  products    Product[]
+  inventory   Inventory[]
+  orderItems  OrderItem[]
+}
+
+model Color {
+  id          String      @id @default(uuid())
+  name        String      // Red, Blue, Black, etc.
+  hexCode     String      // #FF0000, #0000FF, etc.
+  imageUrl    String?     // Sample image showing the color
+  products    Product[]
+  inventory   Inventory[]
+  orderItems  OrderItem[]
+}
+
+model Inventory {
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sizeId    String
+  size      Size    @relation(fields: [sizeId], references: [id])
+  colorId   String
+  color     Color   @relation(fields: [colorId], references: [id])
+  quantity  Int     @default(0)
+
+  @@unique([productId, sizeId, colorId])
+  @@index([productId])
+  @@index([sizeId])
+  @@index([colorId])
+}
+
+model Image {
+  id         String   @id @default(uuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  s3Key      String   // The key in S3
+  s3Url      String   // The URL to access the image
+  imageType  String   // "primary", "thumbnail", "detail", etc.
+  altText    String?  // For accessibility
+  uploadDate DateTime @default(now())
+
+  @@index([productId])
+}
+
+// Order models
+model Order {
+  id              String      @id @default(uuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  status          OrderStatus @default(PENDING)
+  paymentStatus   PaymentStatus @default(PENDING)
+  total           Decimal     @db.Decimal(10, 2)
+  addressId       String?
+  shippingAddress Address?    @relation(fields: [addressId], references: [id])
+  trackingNumber  String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  orderItems      OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 2)
+  sizeId    String
+  size      Size     @relation(fields: [sizeId], references: [id])
+  colorId   String
+  color     Color    @relation(fields: [colorId], references: [id])
+  // For custom designs
+  designUrl String?
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+// Custom designs
+model Design {
+  id          String   @id @default(uuid())
+  userId      String
+  prompt      String
+  s3Key       String   // The key in S3
+  s3Url       String   // The URL to access the image
+  createdAt   DateTime @default(now())
+  isPublic    Boolean  @default(false)
+
+  @@index([userId])
+}
+
+// Enums
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
