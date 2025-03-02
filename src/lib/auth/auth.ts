@@ -6,6 +6,7 @@ import { NextRequest } from 'next/server';
 export type JwtPayload = {
   userId: string;
   email: string;
+  purpose?: 'authentication' | 'email_verification' | 'password_reset';
 };
 
 // Constants
@@ -68,4 +69,45 @@ export const getUserFromCookie = (cookies: { [key: string]: string }): JwtPayloa
   if (!token) return null;
   
   return verifyToken(token);
+};
+
+// Cookie-based authentication for pages
+export const authenticateFromCookies = async (cookieHeader: string | null): Promise<{
+  authenticated: boolean;
+  userId?: string;
+  email?: string;
+  error?: string;
+}> => {
+  try {
+    if (!cookieHeader) {
+      return { authenticated: false, error: 'No cookies provided' };
+    }
+
+    // Parse cookies from the cookie header
+    const cookies: Record<string, string> = {};
+    cookieHeader.split(';').forEach(cookie => {
+      const [name, ...rest] = cookie.split('=');
+      const value = rest.join('=');
+      if (name) cookies[name.trim()] = decodeURIComponent(value);
+    });
+
+    const token = cookies.authToken;
+    if (!token) {
+      return { authenticated: false, error: 'No auth token in cookies' };
+    }
+
+    const payload = verifyToken(token);
+    if (!payload) {
+      return { authenticated: false, error: 'Invalid or expired token' };
+    }
+
+    return { 
+      authenticated: true, 
+      userId: payload.userId, 
+      email: payload.email 
+    };
+  } catch (error) {
+    console.error('Cookie authentication error:', error);
+    return { authenticated: false, error: 'Authentication failed' };
+  }
 };
