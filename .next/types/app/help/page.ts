@@ -1,4 +1,4 @@
-// File: /mnt/c/Users/prave/Desktop/Github_Projects/llm-ecommerce/src/app/help/page.tsx
+// File: C:\Users\prave\Desktop\Github_Projects\llm-ecommerce\src\app\help\page.tsx
 import * as entry from '../../../../src/app/help/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
