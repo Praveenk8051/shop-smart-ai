@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import { authenticate } from '@/lib/auth/auth';
+import { authenticate } from '@/lib/auth/server/auth';
 import { createApiResponse } from '@/lib/api/validation';
 import { uploadToS3, deleteFromS3 } from '@/lib/storage/s3';
 

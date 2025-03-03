@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 interface NavLinkProps {
   href: string;
@@ -26,15 +27,27 @@ const NavLink = ({ href, label, isActive }: NavLinkProps) => {
 
 export default function Navigation() {
   const pathname = usePathname();
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
   
-  const navItems = [
+  // Public nav items (always visible)
+  const publicNavItems = [
     { href: '/', label: 'Home' },
     { href: '/shop', label: 'Shop' },
+    { href: '/help', label: 'Help & FAQs' },
+  ];
+  
+  // Protected nav items (only visible when logged in)
+  const protectedNavItems = [
     { href: '/my-designs', label: 'My Designs' },
     { href: '/cart', label: 'Cart' },
     { href: '/orders', label: 'Orders' },
     { href: '/profile', label: 'Profile' },
-    { href: '/help', label: 'Help & FAQs' },
+  ];
+
+  // Determine which items to show based on auth state
+  const navItems = [
+    ...publicNavItems,
+    ...(isAuthenticated ? protectedNavItems : [])
   ];
 
   return (
@@ -55,8 +68,33 @@ export default function Navigation() {
           </div>
         </div>
         
+        {/* Auth buttons */}
+        <div className="flex items-center">
+          {isLoading ? (
+            <div className="animate-pulse h-10 w-20 bg-gray-200 rounded"></div>
+          ) : isAuthenticated ? (
+            <div className="flex items-center space-x-4">
+              <span className="text-gray-700 hidden sm:inline">
+                Hello, {user?.name?.split(' ')[0] || 'User'}
+              </span>
+              <button 
+                onClick={logout}
+                className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <Link href="/auth">
+              <button className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                Login / Register
+              </button>
+            </Link>
+          )}
+        </div>
+        
         {/* Mobile menu button */}
-        <div className="md:hidden">
+        <div className="md:hidden ml-4">
           <button className="p-2 rounded-md hover:bg-gray-100">
             <svg 
               xmlns="http://www.w3.org/2000/svg" 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import { comparePasswords, generateToken } from '@/lib/auth/auth';
+import { comparePasswords, generateToken } from '@/lib/auth/server/auth';
 import { createApiResponse, validateForm } from '@/lib/api/validation';
 
 export async function POST(req: NextRequest) {

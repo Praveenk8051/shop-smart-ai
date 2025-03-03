@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { generateToken, hashPassword } from '@/lib/auth/auth';
+import { generateToken, hashPassword } from '@/lib/auth/server/auth';
 import prisma from '@/lib/db/prisma';
 import { cookies } from 'next/headers';
 import { createApiResponse } from '@/lib/api/validation';

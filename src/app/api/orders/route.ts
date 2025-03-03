@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import { authenticate } from '@/lib/auth/auth';
+import { authenticate } from '@/lib/auth/server/auth';
 import { createApiResponse, validateForm } from '@/lib/api/validation';
 
 // GET all orders for the authenticated user
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     
     // Build query
     const where: any = {
-      userId: authResult.userId,
+      userId: authResult.userId!,
     };
     
     if (status) {
@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
     const address = await prisma.address.findFirst({
       where: {
         id: addressId,
-        userId: authResult.userId,
+        userId: authResult.userId!,
       },
     });
     
@@ -164,7 +164,17 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    const orderItems = [];
+    // Define proper type for order items
+    interface OrderItem {
+      productId: string;
+      sizeId: string;
+      colorId: string;
+      quantity: number;
+      price: number;
+      designUrl?: string;
+    }
+    
+    const orderItems: OrderItem[] = [];
     let orderTotal = 0;
     
     // Verify each item and check inventory
@@ -243,7 +253,7 @@ export async function POST(req: NextRequest) {
       // Create order
       const newOrder = await tx.order.create({
         data: {
-          userId: authResult.userId,
+          userId: authResult.userId!,
           addressId,
           total: orderTotal,
           orderItems: {

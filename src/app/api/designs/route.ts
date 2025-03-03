@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import { authenticate } from '@/lib/auth/auth';
+import { authenticate } from '@/lib/auth/server/auth';
 import { createApiResponse, validateForm } from '@/lib/api/validation';
 import { uploadToS3 } from '@/lib/storage/s3';
 
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
     // Save design to database
     const design = await prisma.design.create({
       data: {
-        userId: authResult.userId,
+        userId: authResult.userId!,
         prompt,
         s3Key: key,
         s3Url: url,

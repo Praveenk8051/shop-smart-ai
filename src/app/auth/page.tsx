@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 interface FormData {
   firstName: string;
@@ -173,6 +174,8 @@ export default function AuthPage() {
     }
   };
 
+  const { login } = useAuth();
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerError('');
@@ -195,8 +198,14 @@ export default function AuthPage() {
         throw new Error(data.message || 'Login failed');
       }
       
-      // Redirect to home page on successful login
-      router.push('/');
+      // Use the token from the response with our auth context
+      if (data.token) {
+        login(data.token);
+        // Redirect to home page on successful login
+        router.push('/');
+      } else {
+        throw new Error('No authentication token received');
+      }
     } catch (error) {
       setServerError(error instanceof Error ? error.message : 'An error occurred during login');
     } finally {
@@ -237,8 +246,19 @@ export default function AuthPage() {
         throw new Error(data.message || 'Registration failed');
       }
       
-      // Redirect to home page or login page on successful registration
-      setIsLogin(true);
+      // If registration returns a token, login immediately
+      if (data.token) {
+        login(data.token);
+        router.push('/');
+      } else {
+        // Otherwise, redirect to login page
+        setIsLogin(true);
+        // Clear the form for better UX
+        setLoginData({
+          email: formData.email, // Pre-fill the email for convenience
+          password: ''
+        });
+      }
     } catch (error) {
       setServerError(error instanceof Error ? error.message : 'An error occurred during registration');
     } finally {

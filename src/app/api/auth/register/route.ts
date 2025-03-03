@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import { hashPassword, generateToken } from '@/lib/auth/auth';
+import { hashPassword, generateToken } from '@/lib/auth/server/auth';
 import { createApiResponse, validateForm } from '@/lib/api/validation';
 
 // Address validation schema

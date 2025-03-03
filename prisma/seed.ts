@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { hashPassword } from '../src/lib/auth/auth';
+import { hashPassword } from '../src/lib/auth/server/auth';
 
 const prisma = new PrismaClient();
 

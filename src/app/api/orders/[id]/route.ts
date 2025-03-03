@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db/prisma';
-import { authenticate } from '@/lib/auth/auth';
+import { authenticate } from '@/lib/auth/server/auth';
 import { createApiResponse } from '@/lib/api/validation';
 
 // GET a specific order
@@ -23,7 +23,7 @@ export async function GET(
     const order = await prisma.order.findUnique({
       where: {
         id,
-        userId: authResult.userId, // Ensure user can only see their own orders
+        userId: authResult.userId!, // Ensure user can only see their own orders
       },
       include: {
         orderItems: {
