@@ -94,6 +94,8 @@ export async function GET(req: NextRequest) {
           email: googleUser.email,
           name: googleUser.name,
           password: hashedPassword, // Store the hashed random password
+          isAdmin: false, // Regular users only via Google SSO
+          authProvider: 'google',
         },
       });
     }
@@ -102,6 +104,7 @@ export async function GET(req: NextRequest) {
     const token = generateToken({
       userId: user.id,
       email: user.email,
+      isAdmin: user.isAdmin || false,
     });
 
     // Set cookies

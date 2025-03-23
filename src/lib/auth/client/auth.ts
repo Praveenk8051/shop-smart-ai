@@ -4,6 +4,7 @@
 export type JwtPayload = {
   userId: string;
   email: string;
+  isAdmin?: boolean;
   exp?: number; // Expiration time
   iat?: number; // Issued at
   purpose?: 'authentication' | 'email_verification' | 'password_reset';
@@ -14,6 +15,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  isAdmin?: boolean;
 }
 
 // Client-side JWT token validator
@@ -66,4 +68,15 @@ export const isAuthenticated = (): boolean => {
   // Use the client-side verification for browser
   const payload = verifyTokenClientSide(token);
   return payload !== null;
+};
+
+export const isAdmin = (): boolean => {
+  const token = getAuthToken();
+  if (!token) return false;
+  
+  // Use the client-side verification for browser
+  const payload = verifyTokenClientSide(token);
+  if (!payload) return false;
+  
+  return !!payload.isAdmin;
 };

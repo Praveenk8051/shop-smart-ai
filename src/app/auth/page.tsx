@@ -290,6 +290,16 @@ export default function AuthPage() {
             {isLogin ? 'Register now' : 'Sign in'}
           </button>
         </p>
+        {isLogin && (
+          <div className="mt-2 text-center text-sm bg-blue-50 p-2 rounded-md border border-blue-200">
+            <p>
+              <span className="font-medium">Admins:</span> Use your admin credentials to login.
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              Regular users can sign in with Google.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">

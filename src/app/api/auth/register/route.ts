@@ -86,11 +86,14 @@ export async function POST(req: NextRequest) {
           name,
           email,
           password: hashedPassword,
+          isAdmin: false,
+          authProvider: 'local',
         },
         select: {
           id: true,
           name: true,
           email: true,
+          isAdmin: true,
           createdAt: true,
         },
       });
@@ -132,6 +135,7 @@ export async function POST(req: NextRequest) {
     const token = generateToken({
       userId: result.id,
       email: result.email,
+      isAdmin: result.isAdmin,
     });
 
     return NextResponse.json(

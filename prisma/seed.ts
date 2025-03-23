@@ -23,11 +23,26 @@ async function main() {
 
   // Create Users
   console.log('Creating users...');
+  
+  // Create admin user
+  const adminUser = await prisma.user.create({
+    data: {
+      name: 'Admin User',
+      email: 'admin@example.com',
+      password: await hashPassword('admin123'),
+      isAdmin: true,
+      authProvider: 'local',
+    },
+  });
+  
+  // Create regular users
   const user1 = await prisma.user.create({
     data: {
       name: 'John Doe',
       email: 'john@example.com',
       password: await hashPassword('password123'),
+      isAdmin: false,
+      authProvider: 'local',
     },
   });
 
@@ -36,6 +51,8 @@ async function main() {
       name: 'Jane Smith',
       email: 'jane@example.com',
       password: await hashPassword('password123'),
+      isAdmin: false,
+      authProvider: 'local',
     },
   });
 

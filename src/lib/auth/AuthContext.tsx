@@ -16,6 +16,7 @@ interface AuthContextType {
   login: (token: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,7 +73,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser({
         id: payload.userId,
         email: payload.email,
-        name: '' // Will be filled when we fetch from /api/auth/me
+        name: '', // Will be filled when we fetch from /api/auth/me
+        isAdmin: payload.isAdmin
       });
       
       // Refresh the page to trigger a full reload with the new token
@@ -92,7 +94,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     login,
     logout,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    isAdmin: user?.isAdmin || false
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

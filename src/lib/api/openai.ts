@@ -1,9 +1,9 @@
 /**
- * This is a dummy OpenAI API client for demonstration purposes.
- * In a real application, you would use the OpenAI SDK to call the DALL-E API.
+ * OpenAI API client for generating t-shirt designs using DALL-E 3
  */
+import OpenAI from 'openai';
 
-// Mock design images for demo purposes
+// Fallback mock designs in case OpenAI API is not configured
 const MOCK_DESIGNS = [
   'https://placehold.co/600x600/3d4b94/ffffff?text=AI+Generated+Design',
   'https://placehold.co/600x600/9c27b0/ffffff?text=AI+Generated+Design',
@@ -12,32 +12,80 @@ const MOCK_DESIGNS = [
   'https://placehold.co/600x600/ff9800/ffffff?text=AI+Generated+Design',
 ];
 
+interface DesignOptions {
+  subject: string;
+  style: string;
+  colorScheme: string;
+  elements: string;
+  background: string;
+}
+
+// Default values for design options
+const DEFAULT_OPTIONS: DesignOptions = {
+  subject: 'abstract geometric pattern',
+  style: 'minimalist',
+  colorScheme: 'monochromatic black and white',
+  elements: 'shapes and lines',
+  background: 'transparent',
+};
+
 /**
- * Generate a design based on the provided prompt
- * 
- * This is a dummy implementation that returns placeholder images.
- * In a real application, you would:
- * 1. Call OpenAI's DALL-E API with the prompt
- * 2. Get the generated image URL
- * 3. Return that URL
+ * Generate a design based on the provided options
  */
-export async function generateDesign(prompt: string): Promise<string> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
+export async function generateDesign(
+  prompt: string,
+  options?: Partial<DesignOptions>
+): Promise<string> {
+  // Merge provided options with defaults
+  const designOptions: DesignOptions = {
+    ...DEFAULT_OPTIONS,
+    ...options,
+  };
   
-  // In a real implementation, you would do something like:
-  // const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  // const response = await openai.images.generate({
-  //   model: "dall-e-3",
-  //   prompt: prompt,
-  //   n: 1,
-  //   size: "1024x1024",
-  // });
-  // return response.data[0].url;
+  // Check if OpenAI API key is configured
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    console.warn('OpenAI API key not found. Using mock design.');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    const randomIndex = Math.floor(Math.random() * MOCK_DESIGNS.length);
+    return MOCK_DESIGNS[randomIndex];
+  }
   
-  // For demo purposes, return a random mock design
-  const randomIndex = Math.floor(Math.random() * MOCK_DESIGNS.length);
-  return MOCK_DESIGNS[randomIndex];
+  try {
+    // Create full prompt using template
+    const fullPrompt = prompt || formatDesignPrompt(designOptions);
+    
+    // Initialize OpenAI client
+    const openai = new OpenAI({ apiKey });
+    
+    // Call DALL-E 3 API
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: fullPrompt,
+      n: 1,
+      size: "1024x1024",
+      response_format: "url",
+    });
+    
+    // Return generated image URL
+    return response.data[0].url as string;
+  } catch (error) {
+    console.error('Error calling OpenAI API:', error);
+    // Fallback to mock design
+    const randomIndex = Math.floor(Math.random() * MOCK_DESIGNS.length);
+    return MOCK_DESIGNS[randomIndex];
+  }
+}
+
+/**
+ * Format design prompt using template and options
+ */
+export function formatDesignPrompt(options: DesignOptions): string {
+  return `Create a high-contrast, visually striking design for a t-shirt featuring ${options.subject}. 
+The design should have ${options.style} style with ${options.colorScheme} colors. 
+Include ${options.elements} arranged in a balanced composition that will look good when centered on a t-shirt. 
+The background should be ${options.background} and the design should have clean edges suitable for printing. 
+Avoid overly complex details that might be lost when printed.`;
 }
 
 /**

@@ -3,6 +3,17 @@ import prisma from '@/lib/db/prisma';
 import { authenticate } from '@/lib/auth/server/auth';
 import { createApiResponse } from '@/lib/api/validation';
 
+// Temporary mock user for testing while database connection is fixed
+const MOCK_ADMIN_USER = {
+  id: "mock-admin-user-id",
+  name: "Admin User",
+  email: "admin@example.com",
+  isAdmin: true,
+  authProvider: "local",
+  createdAt: new Date(),
+  addresses: [],
+};
+
 export async function GET(req: NextRequest) {
   try {
     // Authenticate user
@@ -13,28 +24,45 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Fetch user information
-    const user = await prisma.user.findUnique({
-      where: { id: authResult.userId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        createdAt: true,
-        addresses: {
+    let user;
+
+    // For our mock admin user
+    if (authResult.userId === MOCK_ADMIN_USER.id || authResult.email === MOCK_ADMIN_USER.email) {
+      user = MOCK_ADMIN_USER;
+    } else {
+      try {
+        // Try to fetch from the database
+        user = await prisma.user.findUnique({
+          where: { id: authResult.userId },
           select: {
             id: true,
-            street: true,
-            city: true,
-            state: true,
-            postalCode: true,
-            country: true,
-            isDefault: true,
-            phone: true,
+            name: true,
+            email: true,
+            isAdmin: true,
+            authProvider: true,
+            createdAt: true,
+            addresses: {
+              select: {
+                id: true,
+                street: true,
+                city: true,
+                state: true,
+                postalCode: true,
+                country: true,
+                isDefault: true,
+                phone: true,
+              },
+            },
           },
-        },
-      },
-    });
+        });
+      } catch (dbError) {
+        console.warn('Database connection error:', dbError);
+        // If email matches our mock user, use that
+        if (authResult.email === MOCK_ADMIN_USER.email) {
+          user = MOCK_ADMIN_USER;
+        }
+      }
+    }
 
     if (!user) {
       return NextResponse.json(

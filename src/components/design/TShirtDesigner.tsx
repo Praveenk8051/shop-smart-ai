@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import PromptInput from './PromptInput';
+import PromptInput, { DesignOptions } from './PromptInput';
 import ColorSelector from './ColorSelector';
 import TShirtPreview from './TShirtPreview';
-import { generateDesign } from '@/lib/api/openai';
+import { generateDesign, formatDesignPrompt } from '@/lib/api/openai';
 
 // T-shirt colors available
 const COLORS = [
@@ -22,20 +22,20 @@ export default function TShirtDesigner() {
   const [designImage, setDesignImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [generatedPrompt, setGeneratedPrompt] = useState<string | null>(null);
 
   // Handler for generating the design
-  const handleGenerateDesign = async () => {
-    if (!prompt.trim()) {
-      setError('Please enter a design prompt');
-      return;
-    }
-
+  const handleGenerateDesign = async (options: DesignOptions) => {
     try {
       setLoading(true);
       setError(null);
       
+      // Format the full prompt from options
+      const formattedPrompt = formatDesignPrompt(options);
+      setGeneratedPrompt(formattedPrompt);
+      
       // Call the API to generate the design
-      const imageUrl = await generateDesign(prompt);
+      const imageUrl = await generateDesign(formattedPrompt);
       setDesignImage(imageUrl);
     } catch (err) {
       console.error('Error generating design:', err);
@@ -89,6 +89,16 @@ export default function TShirtDesigner() {
             side={side} 
           />
         </div>
+        
+        {/* Generated Prompt Display (collapsible) */}
+        {generatedPrompt && (
+          <div className="mt-4 w-full">
+            <details className="border rounded p-2 text-sm">
+              <summary className="font-medium cursor-pointer">View Generated Prompt</summary>
+              <p className="mt-2 text-gray-700 whitespace-pre-wrap">{generatedPrompt}</p>
+            </details>
+          </div>
+        )}
       </div>
       
       {/* Right Column - Controls */}

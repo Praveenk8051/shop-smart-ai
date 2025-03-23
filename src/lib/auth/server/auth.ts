@@ -52,7 +52,12 @@ export const authenticate = async (req: NextRequest) => {
       return { authenticated: false, error: 'Invalid or expired token' };
     }
 
-    return { authenticated: true, userId: payload.userId, email: payload.email };
+    return { 
+      authenticated: true, 
+      userId: payload.userId, 
+      email: payload.email,
+      isAdmin: payload.isAdmin || false
+    };
   } catch (error) {
     console.error('Authentication error:', error);
     return { authenticated: false, error: 'Authentication failed' };
@@ -72,6 +77,7 @@ export const authenticateFromCookies = async (cookieHeader: string | null): Prom
   authenticated: boolean;
   userId?: string;
   email?: string;
+  isAdmin?: boolean;
   error?: string;
 }> => {
   try {
@@ -100,10 +106,32 @@ export const authenticateFromCookies = async (cookieHeader: string | null): Prom
     return { 
       authenticated: true, 
       userId: payload.userId, 
-      email: payload.email 
+      email: payload.email,
+      isAdmin: payload.isAdmin || false
     };
   } catch (error) {
     console.error('Cookie authentication error:', error);
     return { authenticated: false, error: 'Authentication failed' };
+  }
+};
+
+// Admin authentication middleware for API routes
+export const requireAdmin = async (req: NextRequest) => {
+  try {
+    // First authenticate the user
+    const authResult = await authenticate(req);
+    if (!authResult.authenticated) {
+      return { authorized: false, error: authResult.error };
+    }
+
+    // Check if the user is an admin
+    if (!authResult.isAdmin) {
+      return { authorized: false, error: 'Admin access required' };
+    }
+
+    return { authorized: true, userId: authResult.userId, email: authResult.email };
+  } catch (error) {
+    console.error('Admin authentication error:', error);
+    return { authorized: false, error: 'Admin authentication failed' };
   }
 };

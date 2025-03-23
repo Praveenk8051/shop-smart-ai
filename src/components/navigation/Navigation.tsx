@@ -27,7 +27,7 @@ const NavLink = ({ href, label, isActive }: NavLinkProps) => {
 
 export default function Navigation() {
   const pathname = usePathname();
-  const { user, isAuthenticated, logout, isLoading } = useAuth();
+  const { user, isAuthenticated, logout, isLoading, isAdmin } = useAuth();
   
   // Public nav items (always visible)
   const publicNavItems = [
@@ -43,11 +43,17 @@ export default function Navigation() {
     { href: '/orders', label: 'Orders' },
     { href: '/profile', label: 'Profile' },
   ];
+  
+  // Admin nav items (only visible to admin users)
+  const adminNavItems = [
+    { href: '/admin', label: 'Admin Dashboard' },
+  ];
 
-  // Determine which items to show based on auth state
+  // Determine which items to show based on auth state and admin role
   const navItems = [
     ...publicNavItems,
-    ...(isAuthenticated ? protectedNavItems : [])
+    ...(isAuthenticated ? protectedNavItems : []),
+    ...(isAdmin ? adminNavItems : [])
   ];
 
   return (
