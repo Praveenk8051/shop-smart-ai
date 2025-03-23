@@ -15,14 +15,14 @@ datasource db {
 
 // Customer model
 model User {
-  id             String    @id @default(uuid())
-  email          String    @unique
+  id             String          @id @default(uuid())
+  email          String          @unique
   name           String
   password       String
-  isAdmin        Boolean   @default(false)
-  authProvider   String?   // "local" or "google"
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  isAdmin        Boolean         @default(false)
+  authProvider   String? // "local" or "google"
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   addresses      Address[]
   orders         Order[]
   paymentMethods PaymentMethod[]
@@ -48,13 +48,13 @@ model Address {
 }
 
 model PaymentMethod {
-  id                 String   @id @default(uuid())
+  id                 String  @id @default(uuid())
   userId             String
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type               String   // "credit_card", "paypal", etc.
-  lastFourDigits     String?  // For credit cards
-  expiryDate         String?  // For credit cards
-  isDefault          Boolean  @default(false)
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type               String // "credit_card", "paypal", etc.
+  lastFourDigits     String? // For credit cards
+  expiryDate         String? // For credit cards
+  isDefault          Boolean @default(false)
   // We should not store actual payment details
   // These are tokenized references to payment provider data
   paymentProviderRef String?
@@ -64,19 +64,19 @@ model PaymentMethod {
 
 // Product models
 model Product {
-  id          String       @id @default(uuid())
-  name        String
-  description String
-  basePrice   Decimal      @db.Decimal(10, 2)
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  sizes       Size[]
-  colors      Color[]
-  images      Image[]
-  inventory   Inventory[]
-  orderItems  OrderItem[]
-  designType  DesignType?  @relation(fields: [designTypeId], references: [id])
+  id           String      @id @default(uuid())
+  name         String
+  description  String
+  basePrice    Decimal     @db.Decimal(10, 2)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  sizes        Size[]
+  colors       Color[]
+  images       Image[]
+  inventory    Inventory[]
+  orderItems   OrderItem[]
+  designType   DesignType? @relation(fields: [designTypeId], references: [id])
   designTypeId String?
 
   @@index([name])
@@ -90,21 +90,21 @@ model DesignType {
 }
 
 model Size {
-  id          String      @id @default(uuid())
-  name        String      // S, M, L, XL, etc.
-  products    Product[]
-  inventory   Inventory[]
-  orderItems  OrderItem[]
+  id         String      @id @default(uuid())
+  name       String // S, M, L, XL, etc.
+  products   Product[]
+  inventory  Inventory[]
+  orderItems OrderItem[]
 }
 
 model Color {
-  id          String      @id @default(uuid())
-  name        String      // Red, Blue, Black, etc.
-  hexCode     String      // #FF0000, #0000FF, etc.
-  imageUrl    String?     // Sample image showing the color
-  products    Product[]
-  inventory   Inventory[]
-  orderItems  OrderItem[]
+  id         String      @id @default(uuid())
+  name       String // Red, Blue, Black, etc.
+  hexCode    String // #FF0000, #0000FF, etc.
+  imageUrl   String? // Sample image showing the color
+  products   Product[]
+  inventory  Inventory[]
+  orderItems OrderItem[]
 }
 
 model Inventory {
@@ -127,10 +127,10 @@ model Image {
   id         String   @id @default(uuid())
   productId  String
   product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  s3Key      String   // The key in S3
-  s3Url      String   // The URL to access the image
-  imageType  String   // "primary", "thumbnail", "detail", etc.
-  altText    String?  // For accessibility
+  s3Key      String // The key in S3
+  s3Url      String // The URL to access the image
+  imageType  String // "primary", "thumbnail", "detail", etc.
+  altText    String? // For accessibility
   uploadDate DateTime @default(now())
 
   @@index([productId])
@@ -138,17 +138,17 @@ model Image {
 
 // Order models
 model Order {
-  id              String      @id @default(uuid())
+  id              String        @id @default(uuid())
   userId          String
-  user            User        @relation(fields: [userId], references: [id])
-  status          OrderStatus @default(PENDING)
+  user            User          @relation(fields: [userId], references: [id])
+  status          OrderStatus   @default(PENDING)
   paymentStatus   PaymentStatus @default(PENDING)
-  total           Decimal     @db.Decimal(10, 2)
+  total           Decimal       @db.Decimal(10, 2)
   addressId       String?
-  shippingAddress Address?    @relation(fields: [addressId], references: [id])
+  shippingAddress Address?      @relation(fields: [addressId], references: [id])
   trackingNumber  String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
   orderItems      OrderItem[]
 
   @@index([userId])
@@ -157,17 +157,17 @@ model Order {
 }
 
 model OrderItem {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
   quantity  Int
-  price     Decimal  @db.Decimal(10, 2)
+  price     Decimal @db.Decimal(10, 2)
   sizeId    String
-  size      Size     @relation(fields: [sizeId], references: [id])
+  size      Size    @relation(fields: [sizeId], references: [id])
   colorId   String
-  color     Color    @relation(fields: [colorId], references: [id])
+  color     Color   @relation(fields: [colorId], references: [id])
   // For custom designs
   designUrl String?
 
@@ -177,13 +177,13 @@ model OrderItem {
 
 // Custom designs
 model Design {
-  id          String   @id @default(uuid())
-  userId      String
-  prompt      String
-  s3Key       String   // The key in S3
-  s3Url       String   // The URL to access the image
-  createdAt   DateTime @default(now())
-  isPublic    Boolean  @default(false)
+  id        String   @id @default(uuid())
+  userId    String
+  prompt    String
+  s3Key     String // The key in S3
+  s3Url     String // The URL to access the image
+  createdAt DateTime @default(now())
+  isPublic  Boolean  @default(false)
 
   @@index([userId])
 }
